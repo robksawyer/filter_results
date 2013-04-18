@@ -356,10 +356,6 @@ class FilterResultsComponent extends Component {
  */
     public function _searchSelectOption($options) {
 
-        if (!is_array($options)) {
-            return array();
-        }
-
         $result = array();
         
         foreach ($options as $key => $value) {
@@ -456,11 +452,11 @@ class FilterResultsComponent extends Component {
         }
         
         if ($this->_check() > 0) {
-
+            
             $this->_conditions = $this->_filterFields($this->_options['filters']);
 
             if ($this->getOption('auto', 'paginate')) {
-                $this->controller->Paginator->paginate['conditions'][] = $this->_conditions;
+                //$this->controller->Paginator->paginate['conditions'][] = $this->_conditions;
             }
             return $this->_conditions;
         }
@@ -566,7 +562,7 @@ class FilterResultsComponent extends Component {
                 case 'not':
                 case 'and':
                 case 'or':
-
+                    
                     $conditionOfFilter = $this->_filterFields($value);
                     if (count($conditionOfFilter) > 0) {
                         if (!isset($condition[$key])) {
@@ -606,7 +602,7 @@ class FilterResultsComponent extends Component {
         
         foreach ($options as $key => $value) {
 
-            switch (mb_strtolower($key, 'utf-8')) {
+            switch (strtolower($key)) {
                 case 'not':
                 case 'and':
                 case 'or':
@@ -617,7 +613,6 @@ class FilterResultsComponent extends Component {
                 
                 default:
                     
-
                     $this->_filter = array();
                     $this->_filter['field'] = $field;
 
@@ -655,7 +650,7 @@ class FilterResultsComponent extends Component {
                         }
                     }
                     
-                    if (empty($this->_filter['value']) && $this->_filter['value'] !== '0') {
+                    if (empty($this->_filter['value'])) {
                         break;
                     }
                     
@@ -666,7 +661,6 @@ class FilterResultsComponent extends Component {
                     $this->_filter['explode.character'] = (isset($this->_filter['explode']['character']))
                                                           ? $this->_filter['explode']['character']
                                                           : $this->getOption('explode', 'character');
-
 
                     if (!isset($this->_filter['explode'])) {
                         $this->_filter['explode'] = null;
@@ -683,17 +677,15 @@ class FilterResultsComponent extends Component {
                         
                         default:
 
-                            $condition[] = ($this->_isMayExplodeValue())
-                                         ? $this->_valueConcatenate()
-                                         : $this->_value();
-
+                            $condition += $this->_isMayExplodeValue()
+                                        ? $this->_valueConcatenate()
+                                        : $this->_value();
+                            
                             $this->controller->request->data[$this->getOption('label', 'prefix')][$this->_filter['field']] = $this->_getFieldParams();
                             break;
                     }
 
             }
-
-            
         }
         
         return $condition;
@@ -760,7 +752,6 @@ protected function _getFieldParams($more = null, $between = false) {
 
         $this->_filter['operator'] = ($this->_hasFieldParams('operator')) ? $this->_getFieldParams('operator') : 'like';
 
-        $this->_filter['explode'] = true;
         $this->_filter['explode.concatenate'] = $this->getOption('explode', 'concatenate');
         $this->_filter['explode.character']   = $this->getOption('explode', 'character');
 
@@ -791,9 +782,9 @@ protected function _getFieldParams($more = null, $between = false) {
         }
         
 
-        $condition[] = ($this->_isMayExplodeValue())
-                     ? $this->_valueConcatenate()
-                     : $this->_value();
+        $condition = $this->_isMayExplodeValue()
+                   ? $this->_valueConcatenate()
+                   : $this->_value();
         
         $this->controller->request->data[$this->getOption('label', 'prefix')][$this->_filter['field']] = $this->_getFieldParams();
 
@@ -977,18 +968,18 @@ protected function _getFieldParams($more = null, $between = false) {
  * Get the fields of model automaticaly
  *
  * @return array
- * @access public
+ * @access protected
  * @since 1.0
  */
-    public function getModelFields() {
+    protected function getModelFields() {
 
-        if (!isset($this->controller->uses[0])) {
+        if (!isset($this->controller->modelNames[0])) {
             return array();
         }
         
         $fields = array();
-        foreach($this->controller->{$this->controller->uses[0]}->_schema as $key => $value) {
-            $fields[sprintf('%s.%s', $this->controller->uses[0], $key)] = $key;
+        foreach($this->controller->{$this->controller->modelNames[0]}->_schema as $key => $value) {
+            $fields[sprintf('%s.%s', $this->controller->modelNames[0], $key)] = $key;
         }
         return $fields;
     }
@@ -1004,12 +995,9 @@ protected function _getFieldParams($more = null, $between = false) {
     public function getFieldOperator($fieldName) {
 
         $options = $this->_getFilterOptions($fieldName, $this->getOption('filters'));
-        
-        if (is_array($options)) {
-            foreach ($options as $key => $value) {
-                if (isset($value['operator'])) {
-                    return mb_strtolower($value['operator'], 'utf-8');
-                }
+        foreach ($options as $key => $value) {
+            if (isset($value['operator'])) {
+                return mb_strtolower($value['operator'], 'utf-8');
             }
         }
 
@@ -1060,8 +1048,6 @@ protected function _getFieldParams($more = null, $between = false) {
  */
     public function setPaginate($option, $value = null) {
         $setting = (is_array($option)) ? $option : array($option => $value);
-        if (!(is_array($setting))) return;
-
         $this->controller->paginate = array_merge($this->controller->paginate, $setting);
     }
     
