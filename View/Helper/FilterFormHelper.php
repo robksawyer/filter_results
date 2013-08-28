@@ -144,7 +144,7 @@ public function __construct(View $view, $settings = array()) {
  * @access public
  * @since 1.0
  */
-    public function submit($name, $settings = array()) {
+    public function submit($name = null, $settings = array()) {
 
         if (!$this->_hasComponent()) {
             return '';
