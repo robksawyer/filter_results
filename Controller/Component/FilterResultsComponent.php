@@ -456,7 +456,7 @@ class FilterResultsComponent extends Component {
             $this->_conditions = $this->_filterFields($this->_options['filters']);
 
             if ($this->getOption('auto', 'paginate')) {
-                //$this->controller->Paginator->paginate['conditions'][] = $this->_conditions;
+                $this->controller->Paginator->paginate['conditions'][] = $this->_conditions;
             }
             return $this->_conditions;
         }
